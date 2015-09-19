@@ -49,7 +49,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 using namespace Coco;
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 int wmain(int argc, wchar_t *argv[]) {
 #elif defined __GNUC__
 int main(int argc, char *argv_[]) {
