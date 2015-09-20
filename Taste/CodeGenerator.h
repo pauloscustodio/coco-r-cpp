@@ -151,7 +151,7 @@ public:
 	int ReadInt(FILE* s) {
 		int sign;
 		char ch;
-		do {fscanf(s, "%c", &ch);} while (!(ch >= '0' && ch <= '9' || ch == '-'));
+		do {fscanf(s, "%c", &ch);} while (!((ch >= '0' && ch <= '9') || ch == '-'));
 
 		if (ch == '-') {sign = -1; fscanf(s, "%c", &ch);} else sign = 1;
 		int n = 0;
@@ -167,7 +167,7 @@ public:
 		int val;
 		FILE* s;
 		if ((s = fopen(data, "r")) == NULL) {
-			printf("--- Error accessing file %s\n", (char*)data);
+			fprintf(stderr, "--- Error accessing file %s\n", (char*)data);
 			exit(1);
 		}
 		printf("\n");

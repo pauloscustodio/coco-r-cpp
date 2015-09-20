@@ -237,7 +237,7 @@ struct ParserInitCaller<T, true> {
 // Generic case of the ParserDestroyCaller, gets used if the Destroy method is missing
 template<typename T, bool = ParserDestroyExistsRecognizer<T>::DestroyExists>
 struct ParserDestroyCaller {
-	static void CallDestroy(T *t) {
+	static void CallDestroy(T *) {
 		// nothing to do
 	}
 };
@@ -300,26 +300,26 @@ void Errors::SynErr(int line, int col, int n) {
 		}
 		break;
 	}
-	wprintf(L"-- line %d col %d: %ls\n", line, col, s);
+	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
 	coco_string_delete(s);
 	count++;
 }
 
 void Errors::Error(int line, int col, const wchar_t *s) {
-	wprintf(L"-- line %d col %d: %ls\n", line, col, s);
+	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
 	count++;
 }
 
 void Errors::Warning(int line, int col, const wchar_t *s) {
-	wprintf(L"-- line %d col %d: %ls\n", line, col, s);
+	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
 }
 
 void Errors::Warning(const wchar_t *s) {
-	wprintf(L"%ls\n", s);
+	fwprintf(stderr, L"%ls\n", s);
 }
 
 void Errors::Exception(const wchar_t* s) {
-	wprintf(L"%ls", s); 
+	fwprintf(stderr, L"%ls", s); 
 	exit(1);
 }
 

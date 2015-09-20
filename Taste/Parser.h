@@ -98,7 +98,7 @@ int // operators
 	SymbolTable   *tab;
 	CodeGenerator *gen;
 
-	void Err(wchar_t* msg) {
+	void Err(const wchar_t* msg) {
 		errors->Error(la->line, la->col, msg);
 	}
 

@@ -97,7 +97,7 @@ int main(int argc, char *argv_[]) {
 		chTrFileName = coco_string_create_char(traceFileName);
 
 		if ((parser->trace = fopen(chTrFileName, "w")) == NULL) {
-			wprintf(L"-- could not open %hs\n", chTrFileName);
+			fwprintf(stderr, L"-- could not open %hs\n", chTrFileName);
 			exit(1);
 		}
 

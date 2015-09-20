@@ -54,7 +54,9 @@ public:
 	Errors *errors;
 
 	SymbolTable(Parser *parser);
-	void Err(wchar_t* msg);
+	SymbolTable& operator=(const SymbolTable&);	// cannot be copied
+
+	void Err(const wchar_t* msg);
 
 	// open a new scope and make it the current scope (topScope)
 	void OpenScope ();

@@ -12,7 +12,7 @@ SymbolTable::SymbolTable(Parser *parser): undef(0), integer(1), boolean(2), var(
 	undefObj->adr = 0; undefObj->level = 0; undefObj->next = NULL;
 }
 
-void SymbolTable::Err(wchar_t* msg) {
+void SymbolTable::Err(const wchar_t* msg) {
 	errors->Error(0, 0, msg);
 }
 

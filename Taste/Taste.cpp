@@ -10,6 +10,7 @@
 using namespace Taste;
 
 int main (int argc, char *argv[]) {
+	int ret = 0;
 
 	if (argc == 3) {
 		wchar_t *fileName = coco_string_create(argv[1]);
@@ -21,7 +22,10 @@ int main (int argc, char *argv[]) {
 		if (parser->errors->count == 0) {
 			parser->gen->Decode();
 			parser->gen->Interpret(argv[2]);
+			ret = 0;
 		}
+		else
+			ret = 1;
 
 		coco_string_delete(fileName);
 		delete parser->gen;
@@ -31,6 +35,5 @@ int main (int argc, char *argv[]) {
 	} else
 		printf("-- No source file specified\n");
 
-	return 0;
-
+	return ret;
 }

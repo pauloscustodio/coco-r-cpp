@@ -823,8 +823,9 @@ wchar_t* Tab::Unescape (const wchar_t* s) {
 				case L'u': case L'x':
 					if (i + 6 <= coco_string_length(s)) {
 						wchar_t *subS = coco_string_create(s, i+2, 4);
-						buf.Append(Hex2Char(subS)); i += 6; break;
+						buf.Append(Hex2Char(subS)); i += 6; 
 						coco_string_delete(subS);
+						break;
 					} else {
 						parser->SemErr(L"bad escape sequence in string or character");
 						i = coco_string_length(s); break;
@@ -938,7 +939,7 @@ bool Tab::NoCircularProductions() {
 
 	for (i=0; i<list->Count; i++) {
 		n = (CNode*)((*list)[i]);
-			ok = false; errors->count++;
+		ok = false; errors->count++;
 		wprintf(L"  %ls --> %ls", n->left->name, n->right->name);
 	}
 	return ok;
