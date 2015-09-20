@@ -112,15 +112,15 @@ public:
 		pc = 1;
 		while (pc < maxPc) {
 			int code = Next();
-			printf("%3d: %s ", pc-1, opcode[code]);
+			wprintf(L"%3d: %s ", pc-1, opcode[code]);
 			if (code == LOAD || code == LOADG || code == CONST || code == STO || code == STOG ||
 				code == CALL || code == ENTER || code == JMP   || code == FJMP)
-					printf("%d\n", Next2());
+					wprintf(L"%d\n", Next2());
 			else
 			if (code == ADD  || code == SUB || code == MUL || code == DIV || code == NEG ||
 				code == EQU  || code == LSS || code == GTR || code == RET || code == LEAVE ||
 				code == READ || code == WRITE)
-					printf("\n");
+					wprintf(L"\n");
 		}
 	}
 
