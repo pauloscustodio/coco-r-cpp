@@ -173,6 +173,13 @@ public:
 		printf("\n");
 		pc = progStart; stack[0] = 0; top = 1; bp = 0;
 		for (;;) {
+#if 0
+			printf("PC = %d, BP = %d, globals = ", pc, bp); 
+			for (int i = 0; i < 1; i++) printf("%d, ", globals[i]); 
+			printf("stack = ");
+			for (int i = 0; i < top; i++) printf("%d, ", stack[i]);
+			printf("\n");
+#endif
 			int nxt = Next();
 			if (nxt == CONST)
 				Push(Next2());
@@ -187,7 +194,7 @@ public:
 			else if (nxt == ADD)
 				Push(Pop()+Pop());
 			else if (nxt == SUB)
-				Push(-Pop()+Pop());
+				{val = Pop(); Push(Pop() - val);}
 			else if (nxt == DIV)
 				{val = Pop(); Push(Pop()/val);}
 			else if (nxt == MUL)
