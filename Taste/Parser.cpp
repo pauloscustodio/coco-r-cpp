@@ -27,7 +27,6 @@ Coco/R itself) does not fall under the GNU General Public License.
 -----------------------------------------------------------------------*/
 
 
-#include <wchar.h>
 #include "Parser.h"
 #include "Scanner.h"
 
@@ -40,7 +39,7 @@ void Parser::SynErr(int n) {
 	errDist = 0;
 }
 
-void Parser::SemErr(const wchar_t* msg) {
+void Parser::SemErr(const char* msg) {
 	if (errDist >= minErrDist) errors->Error(t->line, t->col, msg);
 	errDist = 0;
 }
@@ -106,7 +105,7 @@ void Parser::Expr(int &type) {
 		if (la->kind == 14 /* "==" */ || la->kind == 15 /* "<" */ || la->kind == 16 /* ">" */) {
 			RelOp(op);
 			SimExpr(type1);
-			if (type != type1) Err(L"incompatible types");
+			if (type != type1) Err("incompatible types");
 			gen->Emit(op); type = boolean; 
 		}
 }
@@ -118,7 +117,7 @@ void Parser::SimExpr(int &type) {
 			AddOp(op);
 			Term(type1);
 			if (type != integer || type1 != integer) 
-			     Err(L"integer type expected");
+			     Err("integer type expected");
 			   gen->Emit(op); 
 		}
 }
@@ -138,7 +137,7 @@ void Parser::RelOp(int &op) {
 }
 
 void Parser::Factor(int &type) {
-		int n; Obj *obj; wchar_t* name; 
+		int n; Obj *obj; char* name; 
 		type = undef; 
 		if (la->kind == _ident) {
 			Ident(name);
@@ -146,16 +145,16 @@ void Parser::Factor(int &type) {
 			if (obj->kind == var) {
 			if (obj->level == 0) gen->Emit(LOADG, obj->adr);
 			else gen->Emit(LOAD, obj->adr);
-			} else Err(L"variable expected"); 
+			} else Err("variable expected"); 
 		} else if (la->kind == _number) {
 			Get();
-			swscanf(t->val, L"%d", &n);	//n = Convert.ToInt32(t->val); 
+			sscanf(t->val, "%d", &n);	//n = Convert.ToInt32(t->val); 
 			gen->Emit(CONST, n); type = integer; 
 		} else if (la->kind == 4 /* "-" */) {
 			Get();
 			Factor(type);
 			if (type != integer) {
-			 Err(L"integer type expected"); type = integer;
+			 Err("integer type expected"); type = integer;
 			}
 			gen->Emit(NEG); 
 		} else if (la->kind == 5 /* "true" */) {
@@ -167,7 +166,7 @@ void Parser::Factor(int &type) {
 		} else SynErr(31);
 }
 
-void Parser::Ident(wchar_t* &name) {
+void Parser::Ident(char* &name) {
 		Expect(_ident);
 		name = coco_string_create(t->val); 
 }
@@ -184,11 +183,11 @@ void Parser::MulOp(int &op) {
 }
 
 void Parser::ProcDecl() {
-		wchar_t* name; Obj *obj; int adr; 
+		char* name; Obj *obj; int adr; 
 		Expect(9 /* "void" */);
 		Ident(name);
 		obj = tab->NewObj(name, proc, undef); obj->adr = gen->pc;
-		if (coco_string_equal(name, L"Main")) gen->progStart = gen->pc; 
+		if (coco_string_equal(name, "Main")) gen->progStart = gen->pc; 
 		tab->OpenScope(); 
 		Expect(10 /* "(" */);
 		Expect(11 /* ")" */);
@@ -208,7 +207,7 @@ void Parser::ProcDecl() {
 }
 
 void Parser::VarDecl() {
-		wchar_t* name; int type; 
+		char* name; int type; 
 		Type(type);
 		Ident(name);
 		tab->NewObj(name, var, type); 
@@ -221,7 +220,7 @@ void Parser::VarDecl() {
 }
 
 void Parser::Stat() {
-		int type; wchar_t* name; Obj *obj;
+		int type; char* name; Obj *obj;
 		int adr, adr2, loopstart; 
 		switch (la->kind) {
 		case _ident: {
@@ -229,17 +228,17 @@ void Parser::Stat() {
 			obj = tab->Find(name); 
 			if (la->kind == 17 /* "=" */) {
 				Get();
-				if (obj->kind != var) Err(L"cannot assign to procedure"); 
+				if (obj->kind != var) Err("cannot assign to procedure"); 
 				Expr(type);
 				Expect(18 /* ";" */);
-				if (type != obj->type) Err(L"incompatible types");
+				if (type != obj->type) Err("incompatible types");
 				if (obj->level == 0) gen->Emit(STOG, obj->adr);
 				else gen->Emit(STO, obj->adr); 
 			} else if (la->kind == 10 /* "(" */) {
 				Get();
 				Expect(11 /* ")" */);
 				Expect(18 /* ";" */);
-				if (obj->kind != proc) Err(L"object is not a procedure");
+				if (obj->kind != proc) Err("object is not a procedure");
 				gen->Emit(CALL, obj->adr); 
 			} else SynErr(33);
 			break;
@@ -249,7 +248,7 @@ void Parser::Stat() {
 			Expect(10 /* "(" */);
 			Expr(type);
 			Expect(11 /* ")" */);
-			if (type != boolean) Err(L"boolean type expected");
+			if (type != boolean) Err("boolean type expected");
 			gen->Emit(FJMP, 0); adr = gen->pc - 2; 
 			Stat();
 			if (la->kind == 20 /* "else" */) {
@@ -268,7 +267,7 @@ void Parser::Stat() {
 			Expect(10 /* "(" */);
 			Expr(type);
 			Expect(11 /* ")" */);
-			if (type != boolean) Err(L"boolean type expected");
+			if (type != boolean) Err("boolean type expected");
 			gen->Emit(FJMP, 0); adr = gen->pc - 2; 
 			Stat();
 			gen->Emit(JMP, loopstart); gen->Patch(adr, gen->pc); 
@@ -279,7 +278,7 @@ void Parser::Stat() {
 			Ident(name);
 			Expect(18 /* ";" */);
 			obj = tab->Find(name);
-			if (obj->type != integer) Err(L"integer type expected");
+			if (obj->type != integer) Err("integer type expected");
 			gen->Emit(READ);
 			if (obj->level == 0) gen->Emit(STOG, obj->adr);
 			else gen->Emit(STO, obj->adr); 
@@ -289,7 +288,7 @@ void Parser::Stat() {
 			Get();
 			Expr(type);
 			Expect(18 /* ";" */);
-			if (type != integer) Err(L"integer type expected");
+			if (type != integer) Err("integer type expected");
 			gen->Emit(WRITE); 
 			break;
 		}
@@ -316,14 +315,14 @@ void Parser::Term(int &type) {
 			MulOp(op);
 			Factor(type1);
 			if (type != integer || type1 != integer) 
-			 Err(L"integer type expected");
+			 Err("integer type expected");
 			gen->Emit(op);
 			
 		}
 }
 
 void Parser::Taste() {
-		wchar_t* name;
+		char* name;
 		InitDeclarations(); 
 		Expect(24 /* "program" */);
 		Ident(name);
@@ -412,7 +411,7 @@ struct ParserDestroyExistsRecognizer {
 // Generic case of the ParserInitCaller, gets used if the Init method is missing
 template<typename T, bool = ParserInitExistsRecognizer<T>::InitExists>
 struct ParserInitCaller {
-	static void CallInit(T *t) {
+	static void CallInit(T *) {
 		// nothing to do
 	}
 };
@@ -444,7 +443,7 @@ struct ParserDestroyCaller<T, true> {
 void Parser::Parse() {
 	t = NULL;
 	la = dummyToken = new Token();
-	la->val = coco_string_create(L"Dummy Token");
+	la->val = coco_string_create("Dummy Token");
 	Get();
 	Taste();
 	Expect(0);
@@ -488,73 +487,73 @@ Errors::Errors() {
 }
 
 void Errors::SynErr(int line, int col, int n) {
-	wchar_t* s;
+	char* s;
 	switch (n) {
-			case 0: s = coco_string_create(L"EOF expected"); break;
-			case 1: s = coco_string_create(L"ident expected"); break;
-			case 2: s = coco_string_create(L"number expected"); break;
-			case 3: s = coco_string_create(L"\"+\" expected"); break;
-			case 4: s = coco_string_create(L"\"-\" expected"); break;
-			case 5: s = coco_string_create(L"\"true\" expected"); break;
-			case 6: s = coco_string_create(L"\"false\" expected"); break;
-			case 7: s = coco_string_create(L"\"*\" expected"); break;
-			case 8: s = coco_string_create(L"\"/\" expected"); break;
-			case 9: s = coco_string_create(L"\"void\" expected"); break;
-			case 10: s = coco_string_create(L"\"(\" expected"); break;
-			case 11: s = coco_string_create(L"\")\" expected"); break;
-			case 12: s = coco_string_create(L"\"{\" expected"); break;
-			case 13: s = coco_string_create(L"\"}\" expected"); break;
-			case 14: s = coco_string_create(L"\"==\" expected"); break;
-			case 15: s = coco_string_create(L"\"<\" expected"); break;
-			case 16: s = coco_string_create(L"\">\" expected"); break;
-			case 17: s = coco_string_create(L"\"=\" expected"); break;
-			case 18: s = coco_string_create(L"\";\" expected"); break;
-			case 19: s = coco_string_create(L"\"if\" expected"); break;
-			case 20: s = coco_string_create(L"\"else\" expected"); break;
-			case 21: s = coco_string_create(L"\"while\" expected"); break;
-			case 22: s = coco_string_create(L"\"read\" expected"); break;
-			case 23: s = coco_string_create(L"\"write\" expected"); break;
-			case 24: s = coco_string_create(L"\"program\" expected"); break;
-			case 25: s = coco_string_create(L"\"int\" expected"); break;
-			case 26: s = coco_string_create(L"\"bool\" expected"); break;
-			case 27: s = coco_string_create(L"\",\" expected"); break;
-			case 28: s = coco_string_create(L"??? expected"); break;
-			case 29: s = coco_string_create(L"invalid AddOp"); break;
-			case 30: s = coco_string_create(L"invalid RelOp"); break;
-			case 31: s = coco_string_create(L"invalid Factor"); break;
-			case 32: s = coco_string_create(L"invalid MulOp"); break;
-			case 33: s = coco_string_create(L"invalid Stat"); break;
-			case 34: s = coco_string_create(L"invalid Stat"); break;
-			case 35: s = coco_string_create(L"invalid Type"); break;
+			case 0: s = coco_string_create("EOF expected"); break;
+			case 1: s = coco_string_create("ident expected"); break;
+			case 2: s = coco_string_create("number expected"); break;
+			case 3: s = coco_string_create("\"+\" expected"); break;
+			case 4: s = coco_string_create("\"-\" expected"); break;
+			case 5: s = coco_string_create("\"true\" expected"); break;
+			case 6: s = coco_string_create("\"false\" expected"); break;
+			case 7: s = coco_string_create("\"*\" expected"); break;
+			case 8: s = coco_string_create("\"/\" expected"); break;
+			case 9: s = coco_string_create("\"void\" expected"); break;
+			case 10: s = coco_string_create("\"(\" expected"); break;
+			case 11: s = coco_string_create("\")\" expected"); break;
+			case 12: s = coco_string_create("\"{\" expected"); break;
+			case 13: s = coco_string_create("\"}\" expected"); break;
+			case 14: s = coco_string_create("\"==\" expected"); break;
+			case 15: s = coco_string_create("\"<\" expected"); break;
+			case 16: s = coco_string_create("\">\" expected"); break;
+			case 17: s = coco_string_create("\"=\" expected"); break;
+			case 18: s = coco_string_create("\";\" expected"); break;
+			case 19: s = coco_string_create("\"if\" expected"); break;
+			case 20: s = coco_string_create("\"else\" expected"); break;
+			case 21: s = coco_string_create("\"while\" expected"); break;
+			case 22: s = coco_string_create("\"read\" expected"); break;
+			case 23: s = coco_string_create("\"write\" expected"); break;
+			case 24: s = coco_string_create("\"program\" expected"); break;
+			case 25: s = coco_string_create("\"int\" expected"); break;
+			case 26: s = coco_string_create("\"bool\" expected"); break;
+			case 27: s = coco_string_create("\",\" expected"); break;
+			case 28: s = coco_string_create("??? expected"); break;
+			case 29: s = coco_string_create("invalid AddOp"); break;
+			case 30: s = coco_string_create("invalid RelOp"); break;
+			case 31: s = coco_string_create("invalid Factor"); break;
+			case 32: s = coco_string_create("invalid MulOp"); break;
+			case 33: s = coco_string_create("invalid Stat"); break;
+			case 34: s = coco_string_create("invalid Stat"); break;
+			case 35: s = coco_string_create("invalid Type"); break;
 
 		default:
 		{
-			wchar_t format[20];
-			coco_swprintf(format, 20, L"error %d", n);
+			char format[20];
+			coco_sprintf(format, 20, "error %d", n);
 			s = coco_string_create(format);
 		}
 		break;
 	}
-	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
+	fprintf(stderr, "-- line %d col %d: %s\n", line, col, s);
 	coco_string_delete(s);
 	count++;
 }
 
-void Errors::Error(int line, int col, const wchar_t *s) {
-	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
+void Errors::Error(int line, int col, const char *s) {
+	fprintf(stderr, "-- line %d col %d: %s\n", line, col, s);
 	count++;
 }
 
-void Errors::Warning(int line, int col, const wchar_t *s) {
-	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
+void Errors::Warning(int line, int col, const char *s) {
+	fprintf(stderr, "-- line %d col %d: %s\n", line, col, s);
 }
 
-void Errors::Warning(const wchar_t *s) {
-	fwprintf(stderr, L"%ls\n", s);
+void Errors::Warning(const char *s) {
+	fprintf(stderr, "%s\n", s);
 }
 
-void Errors::Exception(const wchar_t* s) {
-	fwprintf(stderr, L"%ls", s); 
+void Errors::Exception(const char* s) {
+	fprintf(stderr, "%s", s); 
 	exit(1);
 }
 

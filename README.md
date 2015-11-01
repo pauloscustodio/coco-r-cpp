@@ -1,5 +1,5 @@
-Coco/R
-------
+Coco/R ANSI
+-----------
 
 This is a compiler generator for C++. To build the binary, run
 
@@ -18,9 +18,13 @@ This is the list of main changes. Please check the
 [GIT repository](https://github.com/pauloscustodio/coco-r-cpp) 
 for details.
 
+- Change to parse only ANSI (8-bit) input files - no need for conversion 
+  between UTF-8 and wchar_t multiple times depending on current need.
+  Target of the use of this Coco/R ANSI is parsing of computer languages
+  that do not need Unicode input.
+- Write error messages to stderr, exit false if there were any errors.
+- Fix EOL handling for three different architectures - Unix, Win32 and old Mac.
 - Fix for MinGW compile.
-- Fix EOL handling.
-- Add Taste mini-compiler from original source.
+- Add Taste mini-compiler from original source and use it in test scripts.
 - Include calling coco.exe in the build process.
 - Add Visual Studio solution files.
-- Write error messages to stderr, exit false if there were any errors.

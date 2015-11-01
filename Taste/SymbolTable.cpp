@@ -12,7 +12,7 @@ SymbolTable::SymbolTable(Parser *parser): undef(0), integer(1), boolean(2), var(
 	undefObj->adr = 0; undefObj->level = 0; undefObj->next = NULL;
 }
 
-void SymbolTable::Err(const wchar_t* msg) {
+void SymbolTable::Err(const char* msg) {
 	errors->Error(0, 0, msg);
 }
 
@@ -33,13 +33,13 @@ void SymbolTable::CloseScope () {
 }
 
 // create a new object node in the current scope
-Obj* SymbolTable::NewObj (wchar_t* name, int kind, int type) {
+Obj* SymbolTable::NewObj (char* name, int kind, int type) {
 	Obj *p, *last, *obj = new Obj();
 	obj->name = coco_string_create(name); obj->kind = kind; obj->type = type;
 	obj->level = curLevel;
 	p = topScope->locals; last = NULL;
 	while (p != NULL) {
-		if (coco_string_equal(p->name, name)) Err(L"name declared twice");
+		if (coco_string_equal(p->name, name)) Err("name declared twice");
 		last = p; p = p->next;
 	}
 	if (last == NULL) topScope->locals = obj; else last->next = obj;
@@ -49,7 +49,7 @@ Obj* SymbolTable::NewObj (wchar_t* name, int kind, int type) {
 
 
 // search the name in all open scopes and return its object node
-Obj* SymbolTable::Find (wchar_t* name) {
+Obj* SymbolTable::Find (char* name) {
 	Obj *obj, *scope;
 	scope = topScope;
 	while (scope != NULL) {  // for all open scopes
@@ -60,8 +60,8 @@ Obj* SymbolTable::Find (wchar_t* name) {
 		}
 		scope = scope->next;
 	}
-	wchar_t str[100];
-	coco_swprintf(str, 100, L"%ls is undeclared", name);
+	char str[100];
+	coco_sprintf(str, 100, "%s is undeclared", name);
 	Err(str);
 	return undefObj;
 }

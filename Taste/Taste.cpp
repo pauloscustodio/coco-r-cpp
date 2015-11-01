@@ -5,7 +5,6 @@
 #include "Parser.h"
 #include "Scanner.h"
 #include <sys/timeb.h>
-#include <wchar.h>
 
 using namespace Taste;
 
@@ -13,7 +12,7 @@ int main (int argc, char *argv[]) {
 	int ret = 0;
 
 	if (argc == 3) {
-		wchar_t *fileName = coco_string_create(argv[1]);
+		char *fileName = coco_string_create(argv[1]);
 		Taste::Scanner *scanner = new Taste::Scanner(fileName);
 		Taste::Parser *parser = new Taste::Parser(scanner);
 		parser->tab = new Taste::SymbolTable(parser);
