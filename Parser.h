@@ -46,10 +46,10 @@ public:
 
 	Errors();
 	void SynErr(int line, int col, int n);
-	void Error(int line, int col, const wchar_t *s);
-	void Warning(int line, int col, const wchar_t *s);
-	void Warning(const wchar_t *s);
-	void Exception(const wchar_t *s);
+	void Error(int line, int col, const char *s);
+	void Warning(int line, int col, const char *s);
+	void Warning(const char *s);
+	void Exception(const char *s);
 
 }; // Errors
 
@@ -94,8 +94,8 @@ int id;
 	ParserGen *pgen;
 
 	bool genScanner;
-	wchar_t* tokenString;  // used in declarations of literal tokens
-	wchar_t* noString;     // used in declarations of literal tokens
+	char* tokenString;  // used in declarations of literal tokens
+	char* noString;     // used in declarations of literal tokens
 
 	// This method will be called by the contructor if it exits.
 	// This support is specific to the C++ version of Coco/R.
@@ -106,7 +106,7 @@ int id;
 		id  = 0;
 		str = 1;
 		tokenString = NULL;
-		noString = coco_string_create(L"-none-");
+		noString = coco_string_create("-none-");
 	}
 
 	// Uncomment this method if cleanup is necessary,
@@ -121,7 +121,7 @@ int id;
 
 	Parser(Scanner *scanner);
 	~Parser();
-	void SemErr(const wchar_t* msg);
+	void SemErr(const char* msg);
 
 	void Coco();
 	void SetDecl();
@@ -133,7 +133,7 @@ int id;
 	void Expression(Graph* &g);
 	void SimSet(CharSet* &s);
 	void Char(int &n);
-	void Sym(wchar_t* &name, int &kind);
+	void Sym(char* &name, int &kind);
 	void Term(Graph* &g);
 	void Resolver(Position* &pos);
 	void Factor(Graph* &g);

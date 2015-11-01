@@ -32,7 +32,6 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #include "SymbolTable.h"
 #include "CodeGenerator.h"
-#include "wchar.h"
 
 
 #include "Scanner.h"
@@ -46,10 +45,10 @@ public:
 
 	Errors();
 	void SynErr(int line, int col, int n);
-	void Error(int line, int col, const wchar_t *s);
-	void Warning(int line, int col, const wchar_t *s);
-	void Warning(const wchar_t *s);
-	void Exception(const wchar_t *s);
+	void Error(int line, int col, const char *s);
+	void Warning(int line, int col, const char *s);
+	void Warning(const char *s);
+	void Exception(const char *s);
 
 }; // Errors
 
@@ -98,7 +97,7 @@ int // operators
 	SymbolTable   *tab;
 	CodeGenerator *gen;
 
-	void Err(const wchar_t* msg) {
+	void Err(const char* msg) {
 		errors->Error(la->line, la->col, msg);
 	}
 
@@ -121,14 +120,14 @@ int // operators
 
 	Parser(Scanner *scanner);
 	~Parser();
-	void SemErr(const wchar_t* msg);
+	void SemErr(const char* msg);
 
 	void AddOp(int &op);
 	void Expr(int &type);
 	void SimExpr(int &type);
 	void RelOp(int &op);
 	void Factor(int &type);
-	void Ident(wchar_t* &name);
+	void Ident(char* &name);
 	void MulOp(int &op);
 	void ProcDecl();
 	void VarDecl();

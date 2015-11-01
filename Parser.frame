@@ -47,10 +47,10 @@ public:
 
 	Errors();
 	void SynErr(int line, int col, int n);
-	void Error(int line, int col, const wchar_t *s);
-	void Warning(int line, int col, const wchar_t *s);
-	void Warning(const wchar_t *s);
-	void Exception(const wchar_t *s);
+	void Error(int line, int col, const char *s);
+	void Warning(int line, int col, const char *s);
+	void Warning(const char *s);
+	void Exception(const char *s);
 
 }; // Errors
 
@@ -79,7 +79,7 @@ public:
 
 	Parser(Scanner *scanner);
 	~Parser();
-	void SemErr(const wchar_t* msg);
+	void SemErr(const char* msg);
 
 -->productionsheader
 	void Parse();
@@ -98,7 +98,6 @@ Parser.cpp Specification
 
 -->begin
 
-#include <wchar.h>
 #include "Parser.h"
 #include "Scanner.h"
 
@@ -110,7 +109,7 @@ void Parser::SynErr(int n) {
 	errDist = 0;
 }
 
-void Parser::SemErr(const wchar_t* msg) {
+void Parser::SemErr(const char* msg) {
 	if (errDist >= minErrDist) errors->Error(t->line, t->col, msg);
 	errDist = 0;
 }
@@ -221,7 +220,7 @@ struct ParserDestroyExistsRecognizer {
 // Generic case of the ParserInitCaller, gets used if the Init method is missing
 template<typename T, bool = ParserInitExistsRecognizer<T>::InitExists>
 struct ParserInitCaller {
-	static void CallInit(T *t) {
+	static void CallInit(T *) {
 		// nothing to do
 	}
 };
@@ -253,7 +252,7 @@ struct ParserDestroyCaller<T, true> {
 void Parser::Parse() {
 	t = NULL;
 	la = dummyToken = new Token();
-	la->val = coco_string_create(L"Dummy Token");
+	la->val = coco_string_create("Dummy Token");
 	Get();
 -->parseRoot
 }
@@ -289,37 +288,37 @@ Errors::Errors() {
 }
 
 void Errors::SynErr(int line, int col, int n) {
-	wchar_t* s;
+	char* s;
 	switch (n) {
 -->errors
 		default:
 		{
-			wchar_t format[20];
-			coco_swprintf(format, 20, L"error %d", n);
+			char format[20];
+			coco_sprintf(format, 20, "error %d", n);
 			s = coco_string_create(format);
 		}
 		break;
 	}
-	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
+	fprintf(stderr, "-- line %d col %d: %s\n", line, col, s);
 	coco_string_delete(s);
 	count++;
 }
 
-void Errors::Error(int line, int col, const wchar_t *s) {
-	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
+void Errors::Error(int line, int col, const char *s) {
+	fprintf(stderr, "-- line %d col %d: %s\n", line, col, s);
 	count++;
 }
 
-void Errors::Warning(int line, int col, const wchar_t *s) {
-	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
+void Errors::Warning(int line, int col, const char *s) {
+	fprintf(stderr, "-- line %d col %d: %s\n", line, col, s);
 }
 
-void Errors::Warning(const wchar_t *s) {
-	fwprintf(stderr, L"%ls\n", s);
+void Errors::Warning(const char *s) {
+	fprintf(stderr, "%s\n", s);
 }
 
-void Errors::Exception(const wchar_t* s) {
-	fwprintf(stderr, L"%ls", s); 
+void Errors::Exception(const char* s) {
+	fprintf(stderr, "%s", s); 
 	exit(1);
 }
 

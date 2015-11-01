@@ -27,7 +27,6 @@ Coco/R itself) does not fall under the GNU General Public License.
 -----------------------------------------------------------------------*/
 
 
-#include <wchar.h>
 #include "Parser.h"
 #include "Scanner.h"
 
@@ -40,7 +39,7 @@ void Parser::SynErr(int n) {
 	errDist = 0;
 }
 
-void Parser::SemErr(const wchar_t* msg) {
+void Parser::SemErr(const char* msg) {
 	if (errDist >= minErrDist) errors->Error(t->line, t->col, msg);
 	errDist = 0;
 }
@@ -96,7 +95,7 @@ bool Parser::WeakSeparator(int n, int syFol, int repFol) {
 }
 
 void Parser::Coco() {
-		Symbol *sym; Graph *g, *g1, *g2; wchar_t* gramName = NULL; CharSet *s; 
+		Symbol *sym; Graph *g, *g1, *g2; char* gramName = NULL; CharSet *s; 
 		int beg = la->pos; int line = la->line; 
 		while (StartOf(1)) {
 			Get();
@@ -169,8 +168,8 @@ void Parser::Coco() {
 			if (undef) sym = tab->NewSym(Node::nt, t->val, t->line);
 			else {
 			 if (sym->typ == Node::nt) {
-			   if (sym->graph != NULL) SemErr(L"name declared twice");
-			 } else SemErr(L"this symbol kind not allowed on left side of production");
+			   if (sym->graph != NULL) SemErr("name declared twice");
+			 } else SemErr("this symbol kind not allowed on left side of production");
 			 sym->line = t->line;
 			}
 			bool noAttrs = (sym->attrPos == NULL);
@@ -181,7 +180,7 @@ void Parser::Coco() {
 			}
 			if (!undef)
 			 if (noAttrs != (sym->attrPos == NULL))
-			   SemErr(L"attribute mismatch between declaration and use of this symbol");
+			   SemErr("attribute mismatch between declaration and use of this symbol");
 			
 			if (la->kind == 39 /* "(." */) {
 				SemText(sym->semPos);
@@ -196,32 +195,32 @@ void Parser::Coco() {
 		Expect(19 /* "END" */);
 		Expect(_ident);
 		if (!coco_string_equal(gramName, t->val))
-		 SemErr(L"name does not match grammar name");
+		 SemErr("name does not match grammar name");
 		tab->gramSy = tab->FindSym(gramName);
 		if (tab->gramSy == NULL)
-		 SemErr(L"missing production for grammar name");
+		 SemErr("missing production for grammar name");
 		else {
 		 sym = tab->gramSy;
 		 if (sym->attrPos != NULL)
-		   SemErr(L"grammar symbol must not have attributes");
+		   SemErr("grammar symbol must not have attributes");
 		}
-		tab->noSym = tab->NewSym(Node::t, L"???", 0); // noSym gets highest number
+		tab->noSym = tab->NewSym(Node::t, "???", 0); // noSym gets highest number
 		tab->SetupAnys();
 		tab->RenumberPragmas();
 		if (tab->ddt[2]) tab->PrintNodes();
 		if (errors->count == 0) {
-		 wprintf(L"checking\n");
+		 printf("checking\n");
 		 tab->CompSymbolSets();
 		 if (tab->ddt[7]) tab->XRef();
 		 if (tab->GrammarOk()) {
-		   wprintf(L"parser");
+		   printf("parser");
 		   pgen->WriteParser();
 		   if (genScanner) {
-		     wprintf(L" + scanner");
+		     printf(" + scanner");
 		     dfa->WriteScanner();
 		     if (tab->ddt[0]) dfa->PrintStates();
 		   }
-		   wprintf(L" generated\n");
+		   printf(" generated\n");
 		   if (tab->ddt[8]) pgen->WriteStatistics();
 		 }
 		}
@@ -233,23 +232,23 @@ void Parser::Coco() {
 void Parser::SetDecl() {
 		CharSet *s; 
 		Expect(_ident);
-		wchar_t *name = coco_string_create(t->val);
+		char *name = coco_string_create(t->val);
 		CharClass *c = tab->FindCharClass(name);
-		if (c != NULL) SemErr(L"name declared twice");
+		if (c != NULL) SemErr("name declared twice");
 		
 		Expect(17 /* "=" */);
 		Set(s);
-		if (s->Elements() == 0) SemErr(L"character set must not be empty");
+		if (s->Elements() == 0) SemErr("character set must not be empty");
 		tab->NewCharClass(name, s);
 		
 		Expect(18 /* "." */);
 }
 
 void Parser::TokenDecl(int typ) {
-		wchar_t* name = NULL; int kind; Symbol *sym; Graph *g; 
+		char* name = NULL; int kind; Symbol *sym; Graph *g; 
 		Sym(name, kind);
 		sym = tab->FindSym(name);
-		if (sym != NULL) SemErr(L"name declared twice");
+		if (sym != NULL) SemErr("name declared twice");
 		else {
 		 sym = tab->NewSym(typ, name, t->line);
 		 sym->tokenKind = Symbol::fixedToken;
@@ -261,13 +260,13 @@ void Parser::TokenDecl(int typ) {
 			Get();
 			TokenExpr(g);
 			Expect(18 /* "." */);
-			if (kind == str) SemErr(L"a literal must not be declared with a structure");
+			if (kind == str) SemErr("a literal must not be declared with a structure");
 			tab->Finish(g);
 			if (tokenString == NULL || coco_string_equal(tokenString, noString))
 			 dfa->ConvertToStates(g->l, sym);
 			else { // TokenExpr is a single string
 			 if ((*(tab->literals))[tokenString] != NULL)
-			   SemErr(L"token string declared twice");
+			   SemErr("token string declared twice");
 			 tab->literals->Set(tokenString, sym);
 			 dfa->MatchLiteral(tokenString, sym);
 			}
@@ -279,7 +278,7 @@ void Parser::TokenDecl(int typ) {
 		} else SynErr(44);
 		if (la->kind == 39 /* "(." */) {
 			SemText(sym->semPos);
-			if (typ != Node::pr) SemErr(L"semantic action not allowed here"); 
+			if (typ != Node::pr) SemErr("semantic action not allowed here"); 
 		}
 }
 
@@ -320,7 +319,7 @@ void Parser::AttrDecl(Symbol *sym) {
 					Get();
 				} else {
 					Get();
-					SemErr(L"bad string in attributes"); 
+					SemErr("bad string in attributes"); 
 				}
 			}
 			Expect(25 /* ">" */);
@@ -334,7 +333,7 @@ void Parser::AttrDecl(Symbol *sym) {
 					Get();
 				} else {
 					Get();
-					SemErr(L"bad string in attributes"); 
+					SemErr("bad string in attributes"); 
 				}
 			}
 			Expect(27 /* ".>" */);
@@ -351,10 +350,10 @@ void Parser::SemText(Position* &pos) {
 				Get();
 			} else if (la->kind == _badString) {
 				Get();
-				SemErr(L"bad string in semantic action"); 
+				SemErr("bad string in semantic action"); 
 			} else {
 				Get();
-				SemErr(L"missing end of previous semantic action"); 
+				SemErr("missing end of previous semantic action"); 
 			}
 		}
 		Expect(40 /* ".)" */);
@@ -379,19 +378,19 @@ void Parser::SimSet(CharSet* &s) {
 		if (la->kind == _ident) {
 			Get();
 			CharClass *c = tab->FindCharClass(t->val);
-			if (c == NULL) SemErr(L"undefined name"); else s->Or(c->set);
+			if (c == NULL) SemErr("undefined name"); else s->Or(c->set);
 			
 		} else if (la->kind == _string) {
 			Get();
-			wchar_t *subName2 = coco_string_create(t->val, 1, coco_string_length(t->val)-2);
-			wchar_t *name = tab->Unescape(subName2);
+			char *subName2 = coco_string_create(t->val, 1, coco_string_length(t->val)-2);
+			char *name = tab->Unescape(subName2);
 			coco_string_delete(subName2);
-			                       wchar_t ch;
+			                       char ch;
 			                       int len = coco_string_length(name);
 			                       for(int i=0; i < len; i++) {
 			                         ch = name[i];
 			                         if (dfa->ignoreCase) {
-			                           if ((L'A' <= ch) && (ch <= L'Z')) ch = ch - (L'A' - L'a'); // ch.ToLower()
+			                           if (('A' <= ch) && (ch <= 'Z')) ch = ch - ('A' - 'a'); // ch.ToLower()
 			                         }
 			                         s->Set(ch);
 			                       }
@@ -414,20 +413,20 @@ void Parser::SimSet(CharSet* &s) {
 void Parser::Char(int &n) {
 		Expect(_char);
 		n = 0;
-		wchar_t* subName = coco_string_create(t->val, 1, coco_string_length(t->val)-2);
-		wchar_t* name = tab->Unescape(subName);
+		char* subName = coco_string_create(t->val, 1, coco_string_length(t->val)-2);
+		char* name = tab->Unescape(subName);
 		coco_string_delete(subName);
 		
 		// "<= 1" instead of "== 1" to allow the escape sequence '\0' in c++
 		if (coco_string_length(name) <= 1) n = name[0];
-		else SemErr(L"unacceptable character value");
+		else SemErr("unacceptable character value");
 		coco_string_delete(name);
-		if (dfa->ignoreCase && (((wchar_t) n) >= 'A') && (((wchar_t) n) <= 'Z')) n += 32;
+		if (dfa->ignoreCase && (((char) n) >= 'A') && (((char) n) <= 'Z')) n += 32;
 		
 }
 
-void Parser::Sym(wchar_t* &name, int &kind) {
-		name = coco_string_create(L"???"); kind = id; 
+void Parser::Sym(char* &name, int &kind) {
+		name = coco_string_create("???"); kind = id; 
 		if (la->kind == _ident) {
 			Get();
 			kind = id; coco_string_delete(name); name = coco_string_create(t->val); 
@@ -437,21 +436,21 @@ void Parser::Sym(wchar_t* &name, int &kind) {
 				coco_string_delete(name); name = coco_string_create(t->val); 
 			} else {
 				Get();
-				wchar_t *subName = coco_string_create(t->val, 1, coco_string_length(t->val)-2);
+				char *subName = coco_string_create(t->val, 1, coco_string_length(t->val)-2);
 				coco_string_delete(name); 
-				name = coco_string_create_append(L"\"", subName);
+				name = coco_string_create_append("\"", subName);
 				coco_string_delete(subName);
-				coco_string_merge(name, L"\""); 
+				coco_string_merge(name, "\""); 
 				
 			}
 			kind = str;
 			if (dfa->ignoreCase) {
-			wchar_t *oldName = name;
+			char *oldName = name;
 			name = coco_string_create_lower(name);
 			coco_string_delete(oldName);
 			}
 			if (coco_string_indexof(name, ' ') >= 0)
-			 SemErr(L"literal tokens must not contain blanks"); 
+			 SemErr("literal tokens must not contain blanks"); 
 		} else SynErr(47);
 }
 
@@ -486,7 +485,7 @@ void Parser::Resolver(Position* &pos) {
 }
 
 void Parser::Factor(Graph* &g) {
-		wchar_t* name = NULL; int kind; Position *pos; bool weak = false; 
+		char* name = NULL; int kind; Position *pos; bool weak = false; 
 		 g = NULL;
 		
 		switch (la->kind) {
@@ -507,28 +506,28 @@ void Parser::Factor(Graph* &g) {
 			     sym = tab->NewSym(Node::t, name, t->line);
 			     dfa->MatchLiteral(sym->name, sym);
 			   } else {  // undefined string in production
-			     SemErr(L"undefined string in production");
+			     SemErr("undefined string in production");
 			     sym = tab->eofSy;  // dummy
 			   }
 			 }
 			 int typ = sym->typ;
 			 if (typ != Node::t && typ != Node::nt)
-			   SemErr(L"this symbol kind is not allowed in a production");
+			   SemErr("this symbol kind is not allowed in a production");
 			 if (weak) {
 			   if (typ == Node::t) typ = Node::wt;
-			   else SemErr(L"only terminals may be weak");
+			   else SemErr("only terminals may be weak");
 			 }
 			 Node *p = tab->NewNode(typ, sym, t->line);
 			 g = new Graph(p);
 			
 			if (la->kind == 24 /* "<" */ || la->kind == 26 /* "<." */) {
 				Attribs(p);
-				if (kind != id) SemErr(L"a literal must not have attributes"); 
+				if (kind != id) SemErr("a literal must not have attributes"); 
 			}
 			if (undef)
 			 sym->attrPos = p->pos;  // dummy
 			else if ((p->pos == NULL) != (sym->attrPos == NULL))
-			 SemErr(L"attribute mismatch between declaration and use of this symbol");
+			 SemErr("attribute mismatch between declaration and use of this symbol");
 			
 			break;
 		}
@@ -590,7 +589,7 @@ void Parser::Attribs(Node *p) {
 					Get();
 				} else {
 					Get();
-					SemErr(L"bad string in attributes"); 
+					SemErr("bad string in attributes"); 
 				}
 			}
 			Expect(25 /* ">" */);
@@ -603,7 +602,7 @@ void Parser::Attribs(Node *p) {
 					Get();
 				} else {
 					Get();
-					SemErr(L"bad string in attributes"); 
+					SemErr("bad string in attributes"); 
 				}
 			}
 			Expect(27 /* ".>" */);
@@ -641,14 +640,14 @@ void Parser::TokenTerm(Graph* &g) {
 }
 
 void Parser::TokenFactor(Graph* &g) {
-		wchar_t* name = NULL; int kind; 
+		char* name = NULL; int kind; 
 		g = NULL; 
 		if (la->kind == _ident || la->kind == _string || la->kind == _char) {
 			Sym(name, kind);
 			if (kind == id) {
 			   CharClass *c = tab->FindCharClass(name);
 			   if (c == NULL) {
-			     SemErr(L"undefined name");
+			     SemErr("undefined name");
 			     c = tab->NewCharClass(name, new CharSet());
 			   }
 			   Node *p = tab->NewNode(Node::clas, (Symbol*)NULL, 0); p->val = c->n;
@@ -741,7 +740,7 @@ struct ParserDestroyExistsRecognizer {
 // Generic case of the ParserInitCaller, gets used if the Init method is missing
 template<typename T, bool = ParserInitExistsRecognizer<T>::InitExists>
 struct ParserInitCaller {
-	static void CallInit(T *t) {
+	static void CallInit(T *) {
 		// nothing to do
 	}
 };
@@ -773,7 +772,7 @@ struct ParserDestroyCaller<T, true> {
 void Parser::Parse() {
 	t = NULL;
 	la = dummyToken = new Token();
-	la->val = coco_string_create(L"Dummy Token");
+	la->val = coco_string_create("Dummy Token");
 	Get();
 	Coco();
 	Expect(0);
@@ -835,89 +834,89 @@ Errors::Errors() {
 }
 
 void Errors::SynErr(int line, int col, int n) {
-	wchar_t* s;
+	char* s;
 	switch (n) {
-			case 0: s = coco_string_create(L"EOF expected"); break;
-			case 1: s = coco_string_create(L"ident expected"); break;
-			case 2: s = coco_string_create(L"number expected"); break;
-			case 3: s = coco_string_create(L"string expected"); break;
-			case 4: s = coco_string_create(L"badString expected"); break;
-			case 5: s = coco_string_create(L"char expected"); break;
-			case 6: s = coco_string_create(L"\"COMPILER\" expected"); break;
-			case 7: s = coco_string_create(L"\"IGNORECASE\" expected"); break;
-			case 8: s = coco_string_create(L"\"CHARACTERS\" expected"); break;
-			case 9: s = coco_string_create(L"\"TOKENS\" expected"); break;
-			case 10: s = coco_string_create(L"\"PRAGMAS\" expected"); break;
-			case 11: s = coco_string_create(L"\"COMMENTS\" expected"); break;
-			case 12: s = coco_string_create(L"\"FROM\" expected"); break;
-			case 13: s = coco_string_create(L"\"TO\" expected"); break;
-			case 14: s = coco_string_create(L"\"NESTED\" expected"); break;
-			case 15: s = coco_string_create(L"\"IGNORE\" expected"); break;
-			case 16: s = coco_string_create(L"\"PRODUCTIONS\" expected"); break;
-			case 17: s = coco_string_create(L"\"=\" expected"); break;
-			case 18: s = coco_string_create(L"\".\" expected"); break;
-			case 19: s = coco_string_create(L"\"END\" expected"); break;
-			case 20: s = coco_string_create(L"\"+\" expected"); break;
-			case 21: s = coco_string_create(L"\"-\" expected"); break;
-			case 22: s = coco_string_create(L"\"..\" expected"); break;
-			case 23: s = coco_string_create(L"\"ANY\" expected"); break;
-			case 24: s = coco_string_create(L"\"<\" expected"); break;
-			case 25: s = coco_string_create(L"\">\" expected"); break;
-			case 26: s = coco_string_create(L"\"<.\" expected"); break;
-			case 27: s = coco_string_create(L"\".>\" expected"); break;
-			case 28: s = coco_string_create(L"\"|\" expected"); break;
-			case 29: s = coco_string_create(L"\"WEAK\" expected"); break;
-			case 30: s = coco_string_create(L"\"(\" expected"); break;
-			case 31: s = coco_string_create(L"\")\" expected"); break;
-			case 32: s = coco_string_create(L"\"[\" expected"); break;
-			case 33: s = coco_string_create(L"\"]\" expected"); break;
-			case 34: s = coco_string_create(L"\"{\" expected"); break;
-			case 35: s = coco_string_create(L"\"}\" expected"); break;
-			case 36: s = coco_string_create(L"\"SYNC\" expected"); break;
-			case 37: s = coco_string_create(L"\"IF\" expected"); break;
-			case 38: s = coco_string_create(L"\"CONTEXT\" expected"); break;
-			case 39: s = coco_string_create(L"\"(.\" expected"); break;
-			case 40: s = coco_string_create(L"\".)\" expected"); break;
-			case 41: s = coco_string_create(L"??? expected"); break;
-			case 42: s = coco_string_create(L"this symbol not expected in Coco"); break;
-			case 43: s = coco_string_create(L"this symbol not expected in TokenDecl"); break;
-			case 44: s = coco_string_create(L"invalid TokenDecl"); break;
-			case 45: s = coco_string_create(L"invalid AttrDecl"); break;
-			case 46: s = coco_string_create(L"invalid SimSet"); break;
-			case 47: s = coco_string_create(L"invalid Sym"); break;
-			case 48: s = coco_string_create(L"invalid Term"); break;
-			case 49: s = coco_string_create(L"invalid Factor"); break;
-			case 50: s = coco_string_create(L"invalid Attribs"); break;
-			case 51: s = coco_string_create(L"invalid TokenFactor"); break;
+			case 0: s = coco_string_create("EOF expected"); break;
+			case 1: s = coco_string_create("ident expected"); break;
+			case 2: s = coco_string_create("number expected"); break;
+			case 3: s = coco_string_create("string expected"); break;
+			case 4: s = coco_string_create("badString expected"); break;
+			case 5: s = coco_string_create("char expected"); break;
+			case 6: s = coco_string_create("\"COMPILER\" expected"); break;
+			case 7: s = coco_string_create("\"IGNORECASE\" expected"); break;
+			case 8: s = coco_string_create("\"CHARACTERS\" expected"); break;
+			case 9: s = coco_string_create("\"TOKENS\" expected"); break;
+			case 10: s = coco_string_create("\"PRAGMAS\" expected"); break;
+			case 11: s = coco_string_create("\"COMMENTS\" expected"); break;
+			case 12: s = coco_string_create("\"FROM\" expected"); break;
+			case 13: s = coco_string_create("\"TO\" expected"); break;
+			case 14: s = coco_string_create("\"NESTED\" expected"); break;
+			case 15: s = coco_string_create("\"IGNORE\" expected"); break;
+			case 16: s = coco_string_create("\"PRODUCTIONS\" expected"); break;
+			case 17: s = coco_string_create("\"=\" expected"); break;
+			case 18: s = coco_string_create("\".\" expected"); break;
+			case 19: s = coco_string_create("\"END\" expected"); break;
+			case 20: s = coco_string_create("\"+\" expected"); break;
+			case 21: s = coco_string_create("\"-\" expected"); break;
+			case 22: s = coco_string_create("\"..\" expected"); break;
+			case 23: s = coco_string_create("\"ANY\" expected"); break;
+			case 24: s = coco_string_create("\"<\" expected"); break;
+			case 25: s = coco_string_create("\">\" expected"); break;
+			case 26: s = coco_string_create("\"<.\" expected"); break;
+			case 27: s = coco_string_create("\".>\" expected"); break;
+			case 28: s = coco_string_create("\"|\" expected"); break;
+			case 29: s = coco_string_create("\"WEAK\" expected"); break;
+			case 30: s = coco_string_create("\"(\" expected"); break;
+			case 31: s = coco_string_create("\")\" expected"); break;
+			case 32: s = coco_string_create("\"[\" expected"); break;
+			case 33: s = coco_string_create("\"]\" expected"); break;
+			case 34: s = coco_string_create("\"{\" expected"); break;
+			case 35: s = coco_string_create("\"}\" expected"); break;
+			case 36: s = coco_string_create("\"SYNC\" expected"); break;
+			case 37: s = coco_string_create("\"IF\" expected"); break;
+			case 38: s = coco_string_create("\"CONTEXT\" expected"); break;
+			case 39: s = coco_string_create("\"(.\" expected"); break;
+			case 40: s = coco_string_create("\".)\" expected"); break;
+			case 41: s = coco_string_create("??? expected"); break;
+			case 42: s = coco_string_create("this symbol not expected in Coco"); break;
+			case 43: s = coco_string_create("this symbol not expected in TokenDecl"); break;
+			case 44: s = coco_string_create("invalid TokenDecl"); break;
+			case 45: s = coco_string_create("invalid AttrDecl"); break;
+			case 46: s = coco_string_create("invalid SimSet"); break;
+			case 47: s = coco_string_create("invalid Sym"); break;
+			case 48: s = coco_string_create("invalid Term"); break;
+			case 49: s = coco_string_create("invalid Factor"); break;
+			case 50: s = coco_string_create("invalid Attribs"); break;
+			case 51: s = coco_string_create("invalid TokenFactor"); break;
 
 		default:
 		{
-			wchar_t format[20];
-			coco_swprintf(format, 20, L"error %d", n);
+			char format[20];
+			coco_sprintf(format, 20, "error %d", n);
 			s = coco_string_create(format);
 		}
 		break;
 	}
-	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
+	fprintf(stderr, "-- line %d col %d: %s\n", line, col, s);
 	coco_string_delete(s);
 	count++;
 }
 
-void Errors::Error(int line, int col, const wchar_t *s) {
-	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
+void Errors::Error(int line, int col, const char *s) {
+	fprintf(stderr, "-- line %d col %d: %s\n", line, col, s);
 	count++;
 }
 
-void Errors::Warning(int line, int col, const wchar_t *s) {
-	fwprintf(stderr, L"-- line %d col %d: %ls\n", line, col, s);
+void Errors::Warning(int line, int col, const char *s) {
+	fprintf(stderr, "-- line %d col %d: %s\n", line, col, s);
 }
 
-void Errors::Warning(const wchar_t *s) {
-	fwprintf(stderr, L"%ls\n", s);
+void Errors::Warning(const char *s) {
+	fprintf(stderr, "%s\n", s);
 }
 
-void Errors::Exception(const wchar_t* s) {
-	fwprintf(stderr, L"%ls", s); 
+void Errors::Exception(const char* s) {
+	fprintf(stderr, "%s", s); 
 	exit(1);
 }
 

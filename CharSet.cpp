@@ -29,7 +29,6 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <wchar.h>
 #include "CharSet.h"
 #include "Scanner.h"
 
@@ -155,7 +154,7 @@ void CharSet::Clear() {
 
 void CharSet::Fill() {
 	Clear();
-	head = new Range(0, COCO_WCHAR_MAX);
+	head = new Range(0, COCO_CHAR_MAX);
 }
 
 CharSet::~CharSet() {

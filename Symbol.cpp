@@ -37,7 +37,7 @@ int Symbol::litToken       = 2;
 int Symbol::classLitToken  = 3;
 
 
-Symbol::Symbol(int typ, const wchar_t* name, int line) {
+Symbol::Symbol(int typ, const char* name, int line) {
 	n = 0;
 	graph = NULL;
 	tokenKind = 0;

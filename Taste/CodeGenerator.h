@@ -4,7 +4,6 @@
 #include "Scanner.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <wchar.h>
 
 namespace Taste {
 
@@ -18,7 +17,7 @@ public:
 	  CALL, RET,   ENTER, LEAVE,
 	  JMP,  FJMP,  READ,  WRITE;
 
-	wchar_t* opcode[21];
+	char* opcode[21];
 
 	int progStart;		// address of first instruction of main program
 	int pc;				// program counter
@@ -112,15 +111,15 @@ public:
 		pc = 1;
 		while (pc < maxPc) {
 			int code = Next();
-			wprintf(L"%3d: %s ", pc-1, opcode[code]);
+			printf("%3d: %s ", pc-1, opcode[code]);
 			if (code == LOAD || code == LOADG || code == CONST || code == STO || code == STOG ||
 				code == CALL || code == ENTER || code == JMP   || code == FJMP)
-					wprintf(L"%d\n", Next2());
+					printf("%d\n", Next2());
 			else
 			if (code == ADD  || code == SUB || code == MUL || code == DIV || code == NEG ||
 				code == EQU  || code == LSS || code == GTR || code == RET || code == LEAVE ||
 				code == READ || code == WRITE)
-					wprintf(L"\n");
+					printf("\n");
 		}
 	}
 

@@ -10,7 +10,7 @@ class Errors;
 
 class Obj {  // object describing a declared name
 public:
-	wchar_t* name;		// name of the object
+	char* name;		// name of the object
 	int type;		// type of the object (undef for proc)
 	Obj	*next;		// to next object in same scope
 	int kind;		// var, proc, scope
@@ -56,7 +56,7 @@ public:
 	SymbolTable(Parser *parser);
 	SymbolTable& operator=(const SymbolTable&);	// cannot be copied
 
-	void Err(const wchar_t* msg);
+	void Err(const char* msg);
 
 	// open a new scope and make it the current scope (topScope)
 	void OpenScope ();
@@ -65,10 +65,10 @@ public:
 	void CloseScope ();
 
 	// create a new object node in the current scope
-	Obj* NewObj (wchar_t* name, int kind, int type);
+	Obj* NewObj (char* name, int kind, int type);
 
 	// search the name in all open scopes and return its object node
-	Obj* Find (wchar_t* name);
+	Obj* Find (char* name);
 
 };
 
